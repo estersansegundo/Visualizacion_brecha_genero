@@ -20,6 +20,28 @@ El SEPE y el INE publican series temporales de datos con diferentes desagregacio
 
 ### Carga y limpieza de datasets
 
+#### Instalación y carga de librerías
+
+Instalamos y cargamos las librerías necesarias para el tratamiento de los datos. 
+
+```{r carga de librerías, warning = FALSE}
+#Paquete para importar archivos de excel
+if (!requireNamespace("readxl", quietly = TRUE)) {install.packages("readxl")}
+library(readxl)
+
+#Paquete para facilitar la manipulación y operaciones con data frames
+if (!requireNamespace("dplyr", quietly = TRUE)) {install.packages("dplyr")}
+library(dplyr)
+
+#Paquete que facilita el trabajo con variables de tipo fecha
+if (!requireNamespace("lubridate", quietly = TRUE)) {install.packages("lubridate")}
+library(lubridate)
+
+#Paquete que implementa la representación gráfica de los datos 
+if (!requireNamespace("ggplot2", quietly = TRUE)) {install.packages("ggplot2")}
+library(ggplot2)
+```
+
 #### Carga de datasets 
 
 Lo primero que vamos a hacer es cargar los conjuntos de datos desde la propia 
@@ -127,6 +149,7 @@ gasto_2020 <-
   read.csv("https://sede.sepe.gob.es/es/portaltrabaja/resources/sede/datos_abiertos/datos/Gastos_Prestaciones_2020_csv.csv",
            sep=";", skip = 1, header = T)
 
+
 ```
 
 El archivo csv de 2013 no está completo, por tanto exportaremos dos datasets en 
@@ -137,14 +160,7 @@ a descargar los datasets xls desde dos urls, para luego cargarlos.
 ``` {r descargar, warning = FALSE}
 #Cargamos los datasets de demandantes de empleo por municipio para el primer y 
 #segundo semestre de 2013
-```
 
-``` {r libreria readxl, warning = FALSE, echo = FALSE}
-if (!requireNamespace("readxl", quietly = TRUE)) {install.packages("readxl")}
-library(readxl)
-```
-
-``` {r descargar 2, warning = FALSE}
 Demandantes_empleo_2013_1S <-
   read_excel("Dtes_empleo_por_municipios_primer_semestre_2013_xls.xls", 
                                          skip = 1, col_names = TRUE)
@@ -197,8 +213,10 @@ Datos_desempleo <- rbind(Demandantes_empleo_2006, Demandantes_empleo_2007,
                          Demandantes_empleo_2017, Demandantes_empleo_2018,
                          Demandantes_empleo_2019, Demandantes_empleo_2020,
                          Demandantes_empleo_2013) 
-                        
-head(Datos_desempleo)
+
+Datos_desempleo_head <- head(Datos_desempleo)
+knitr::kable(Datos_desempleo_head)
+
 
 #Unimos los datasets de gasto en prestaciones por desempleo por provincia.
 
@@ -210,7 +228,8 @@ gasto_desempleo <- rbind(gasto_2010, gasto_2011, gasto_2012, gasto_2014,
                          gasto_2015,gasto_2016, gasto_2017, gasto_2018,
                          gasto_2019, gasto_2020)
 
-head(gasto_desempleo)
+gasto_desempleo_head <- head(gasto_desempleo)
+knitr::kable(gasto_desempleo_head)
 ```
 
 #### Transformación de variables 
@@ -223,14 +242,7 @@ str(Datos_desempleo)
 
 #Tranformamos la variable del código mes en un formato compatible para ser 
 #reconocido como una fecha.
-```
 
-```{r libreria lubridate, warning = FALSE, echo=FALSE}
-if (!requireNamespace("lubridate", quietly = TRUE)) {install.packages("lubridate")}
-library(lubridate)
-```
-
-```{r Transformar variables 2, warning = FALSE}
 Datos_desempleo$Código.mes <- as.factor(Datos_desempleo$Código.mes)
 str(Datos_desempleo$Código.mes)
 
@@ -329,14 +341,6 @@ El dataset de gasto de prestaciones por desempleo, como ya lo tenemos selecciona
 
 #Realizamos un group by, agruparemos las variables numericas que nos interesen 
 #en función de las varibles categóricas.  
-```
-
-```{r libreria dplyr, warning = FALSE, echo=FALSE}
-if (!requireNamespace("dplyr", quietly = TRUE)) {install.packages("dplyr")}
-library(dplyr)
-```
-
-```{r creación de nuevo dataset 2, warning = FALSE}
 
 desempleados_provincia <- Datos_desempleo %>% 
   group_by(Código.mes, Comunidad.Autónoma, Provincia) %>%
@@ -416,7 +420,6 @@ modelo <- glm (Gasto.Total.Prestación ~ total.Dtes.Empleo,
                data= gasto_por_desempleado)
 
 summary(modelo)
-
 ```
  
 El modelo con una unica predictora es capaz de explicar el 94.83 % de la variabilidad observada en el gasto de desempleo.El p-value del modelo es significativo (2.2e-10). 
@@ -430,17 +433,11 @@ plot((gasto_por_desempleado$total.Dtes.Empleo),
      xlab = "Gasto por desempleo", 
      ylab = "Demandantes de empleo") + 
   abline(modelo, col ="red")
-
 ```
 
 Una vez que hemos realizado el modelo debemos realizar una validacion del mismo.
 Si la relación entre la variable respuesta y la predictora es lineal, los residuos
 deben distribuirse de manera aleatorio en torno a 0. 
-
-```{r libreria ggplot2, warning = FALSE, echo=FALSE}
-if (!requireNamespace("ggplot2", quietly = TRUE)) {install.packages("ggplot2")}
-library(ggplot2)
-```
 
 ```{r disgnostico del modelo, warning = FALSE}
 
