@@ -1,5 +1,5 @@
 ---
-title: "Brecha de género"
+title: <font color = "purple"> **Brecha de genero** </font>
 author: "Ester Sansegundo"
 date: "8 de enero de 2021"
 output: 
@@ -9,20 +9,42 @@ output:
     toc_float: 
       collapse: True
       smooth_scroll: true
-  
+    code_folding: hide
   
 ---
 ## <span style="color:purple"> Introducción </span>
 
-El SEPE y el INE publican series temporales de datos con diferentes desagregaciones que facilitan la realización de análisis de las características que presentan los demandantes de empleo, con el objeto de obtener el perfil que caracteriza al colectivo. En estos datos se observa como la evolución de la demanda de empleo en España se ve afectada por una significativa brecha de género que se acentúa por la influencia de diferentes variables. 
+El SEPE y el INE publican series temporales de datos con diferentes desagregaciones que facilitan la realización de análisis de las características que presentan los demandantes de empleo, con el objeto de obtener el perfil que caracteriza al colectivo. En estos datos se observa como la evolución de la demanda de empleo en España se ve afectada por una brecha de género que se acentúa por la influencia de diferentes variables.
+
+Con estos datos realizaremos un análisis de los mismos con diferentes técnicas y herramientas, que nos proporcionaran información sobre cómo influyen determinadas variables en los demandantes de empleo. 
+
+## <span style="color:purple"> Objetivos </span>
+
+El objetivo principal de este estudio es determinar la brecha de género en el colectivo de demandantes de empleo y como se ve influenciada por diferentes variables como son la edad, la localización, los estudios y el tipo de contrato al que suelen optar. 
+
+## <span style="color:purple"> Recursos </span>
+
+### <span style = "color:purple"> Datos abiertos </span>
+
+Para este análisis se han utilizado diferentes fuentes de datos.
+
+* Datasets de los demandantes de empleo por municipio. [Estos conjuntos de datos](https://datos.gob.es/es/catalogo/ea0021425-demandantes-de-empleo-por-municipios) están disponibles en [datos.gob.es](https://datos.gob.es/). Se trata de varios conjuntos de datos que recogen una serie temporal mensual desde 2006 hasta 2020, del número de demandantes de empleo por municipios en España. Estos datos han sido publicados por el Servicio Público de Empleo Estatal (Ministerio de Trabajo y Economía Social).
+
+* Datasets del gasto de prestaciones por desempleo por provincia. [Estos datasets](https://datos.gob.es/es/catalogo/ea0021425-gasto-en-prestaciones) están disponibles en [datos.gob.es](https://datos.gob.es/). Estos datos recogen una serie temporal mensual desde 2010 hasta 2020 desagregado por mes y provincias. Estos datos han sido publicados por el Servicio Público de Empleo Estatal (Ministerio de Trabajo y Economía Social). 
+
+* Datasets de contratos registrados por municipios. [Este conjunto de datasets](https://datos.gob.es/es/catalogo/ea0021425-contratos-por-municipios) están publicados en [datos.gob.es](https://datos.gob.es/). Estos datos representan una serie temporal mensual desde 2006 hasta 2020 por municipio en España. Estos datos han sido publicados por el Servicio Público de Empleo Estatal (Ministerio de Trabajo y Economía Social).  
+
+### <span style = "color:purple"> Herramientas </span>      
+
+Para la realización de este documento (entorno de trabajo, programación y redacción del mismo) se ha utilizado [RStudio](https://rstudio.com/) con el complemento de [Markdown](https://daringfireball.net/projects/markdown/).
+
+Para la creación de los gráficos interactivos se han usado las herramientas de [Elastic Stack](https://www.elastic.co/es/elastic-stack?ultron=B-Stack-Trials-EMEA-S-Exact&gambit=Elasticsearch-ELK&blade=adwords-s&hulk=cpc&Device=c&thor=elastic%20stack&gclid=Cj0KCQiA0fr_BRDaARIsAABw4Evg_ld47Q6u6eE89zQ3Jl1TPZqX1UG9xebZfyUBpo6Z7QX_fO4txgMaAuuAEALw_wcB) (Elasticsearch, Logstash y Kibana). 
 
 ## <span style="color:purple"> Tratamiento de datos </span>
 
-### Carga y limpieza de datasets
+###<span style="color:purple"> Instalación y carga de librerías </span>
 
-#### Instalación y carga de librerías
-
-Instalamos y cargamos las librerías necesarias para el tratamiento de los datos. 
+Instalamos y cargamos las librerías necesarias para el tratamiento y análisis de los datos. 
 
 ```{r carga de librerías, warning = FALSE}
 #Paquete para importar archivos de excel
@@ -42,10 +64,12 @@ if (!requireNamespace("ggplot2", quietly = TRUE)) {install.packages("ggplot2")}
 library(ggplot2)
 ```
 
-#### Carga de datasets 
+### <span style="color:purple"> Carga y limpieza de datos </span>
+
+####<span style="color:purple"> Carga de datasets </span>
 
 Lo primero que vamos a hacer es cargar los conjuntos de datos desde la propia 
-página web donde se encuentran y ver la previsualización de los mismos.   
+página web donde se encuentran.    
 
 ```{r carga de datos, warning = FALSE}
 #Carga de datasets de demandantes de empleo por municipio desde 2006 hasta 2020.
@@ -107,7 +131,7 @@ Demandantes_empleo_2020 <-
           sep=";", skip = 1, header = T)
 
 
-#Cargamos los datasets del gasto de empleo por provincia desde 2010 hasta 2020. 
+#Cargamos los datasets de gasto en prestaciones por desempleo por provincia desde 2010 hasta 2020 
 
 gasto_2010 <- 
   read.csv("https://sede.sepe.gob.es/es/portaltrabaja/resources/sede/datos_abiertos/datos/Gastos_Prestaciones_2010_csv.csv", 
@@ -149,15 +173,13 @@ gasto_2020 <-
   read.csv("https://sede.sepe.gob.es/es/portaltrabaja/resources/sede/datos_abiertos/datos/Gastos_Prestaciones_2020_csv.csv",
            sep=";", skip = 1, header = T)
 
-
 ```
 
-El archivo csv de 2013 no está completo, por tanto exportaremos dos datasets en 
-formato xls, uno por cada semestre de 2013. R tiene un paquete especial de R para
-cargar datasets en formato xsl. Como xls es un formato difícil de tratar, vamos
-a descargar los datasets xls desde dos urls, para luego cargarlos.   
+En los conjuntos de datos, el año 2013 en formato CSV no está completo, por tanto exportaremos estos datasets en 
+formato xls. Como xls es un formato difícil de tratar, vamos
+a descargar los datasets en nuestra carpeta de trabajo, para seguidamente cargarlos en RStudio.    
 
-``` {r descargar, warning = FALSE}
+``` {r descargar 2013, warning = FALSE}
 #Cargamos los datasets de demandantes de empleo por municipio para el primer y 
 #segundo semestre de 2013
 
@@ -177,34 +199,35 @@ Demandantes_empleo_2013 <- rbind(Demandantes_empleo_2013_1S,
 
 gasto_2013<- read_excel("Gastos_Prestaciones_2013_xls.xls", 
                         skip = 1, col_names = TRUE)
+```
 
+Cuando cargamos los datos en formato xls, se cargan en tipo "tibble". Para poder trabajar con ellos al igual que con las otros datasets (que se cargan en tipo "data.frame"), los transformamos a "data.frame". 
 
-#cuando cargamos los datos de excel, son de tipo "tibble", para poder trabajar con ellos al igual que con las otros datasets, lo transformamos en un "data.frame" 
-
+``` {r , warning = FALSE}
+#Dataset de demandantes de empleo en 2013
 class(Demandantes_empleo_2013)
 Demandantes_empleo_2013 <- as.data.frame(Demandantes_empleo_2013)
 class(Demandantes_empleo_2013)
 
+#Dataset de gasto en prestaciones por desempleo en 2013
 class (gasto_2013)
 gasto_2013 <- as.data.frame(gasto_2013)
 class(gasto_2013)
-
 ```
 
-Una vez que tenemos todas los datasets que nos interesan los unimos en un único 
-dataset. Al cargar los datos en dos formatos diferentes, aunque las variables 
-sean las mismas, los nombres de estas, R las toma de manera diferente, esto nos 
-hace que debemos que hacer coincidir los nombres de las variables para poder unir 
-todos los datos en un único dataset. 
+Una vez que tenemos todas los datasets que nos interesan los unimos en un único conjunto de datos. 
+
+Al cargar los datos en dos formatos diferentes (csv y xls), aunque las variables sean las mismas, RStudio interpreta los nombres de estas de manera diferente. Para unir todos los conjuntos de datos, sus variables deben presentar el mismo nombre. 
+
+Como sabemos que los datasets presentan las mismas variables, haremos coincidir los nombres de estas en todos los datasets. 
 
 ```{r Unir datasets, warning = FALSE}
-#Unimos los datasets de demandantes de empleo por municipio
-
+#Cambio de nombre a las variables del dataset de demandantes de empleo de 2013
 identical(names(Demandantes_empleo_2006), names(Demandantes_empleo_2013))
 
 names(Demandantes_empleo_2013) <- names(Demandantes_empleo_2006)
 
-
+#Unión de los datasets de demandantes de empleo
 Datos_desempleo <- rbind(Demandantes_empleo_2006, Demandantes_empleo_2007,
                          Demandantes_empleo_2008, Demandantes_empleo_2009,
                          Demandantes_empleo_2010, Demandantes_empleo_2011,
@@ -214,36 +237,36 @@ Datos_desempleo <- rbind(Demandantes_empleo_2006, Demandantes_empleo_2007,
                          Demandantes_empleo_2019, Demandantes_empleo_2020,
                          Demandantes_empleo_2013) 
 
-Datos_desempleo_head <- head(Datos_desempleo)
-knitr::kable(Datos_desempleo_head)
+#Previsualización del dataset de demandantes de empleo 
+knitr::kable(head(Datos_desempleo))
 
-
-#Unimos los datasets de gasto en prestaciones por desempleo por provincia.
+#Cambio de nombre a las variables del dataset de gasto en prestaciones por desempleo de 2013
 
 identical(names(gasto_2010), names(gasto_2013))
 
 names(gasto_2013) <- names(gasto_2010)
 
+#Unión de los datasets de gasto en prestaciones por desempleo
 gasto_desempleo <- rbind(gasto_2010, gasto_2011, gasto_2012, gasto_2014,
                          gasto_2015,gasto_2016, gasto_2017, gasto_2018,
                          gasto_2019, gasto_2020)
 
-gasto_desempleo_head <- head(gasto_desempleo)
-knitr::kable(gasto_desempleo_head)
+#Previsualización del dataset de gasto en prestaciones por desempleo 
+knitr::kable(head(gasto_desempleo))
 ```
 
-#### Transformación de variables 
+####<span style="color:purple"> Transformación de variables </span>
 
-Cuando tenemos el dataset que nos interesa, debemos evaluar el tipo de variables 
-que presenta y transformarlas si fuera necesario.  
+Cuando tenemos el dataset que nos interesa, debemos evaluar el tipo de variables que presenta y si fuera necesario transformarlas.  
 
 ```{r Transformar variables, warning = FALSE}
-str(Datos_desempleo)
+#Dataset de demandantes de empleo
+knitr::kable(str(Datos_desempleo))
 
-#Tranformamos la variable del código mes en un formato compatible para ser 
-#reconocido como una fecha.
+#Transformamos la variable de "código. mes" en un formato compatible para ser reconocido como fecha.
 
 Datos_desempleo$Código.mes <- as.factor(Datos_desempleo$Código.mes)
+knitr::kable(str(Datos_desempleo$Código.mes))
 str(Datos_desempleo$Código.mes)
 
 Datos_desempleo$Código.mes <- parse_date_time(Datos_desempleo$Código.mes,
@@ -254,13 +277,11 @@ str(Datos_desempleo$Código.mes)
 Datos_desempleo$Código.mes <- as.factor(Datos_desempleo$Código.mes)
 str(Datos_desempleo$Código.mes)
 
-# Transformación de variables en el dataset de gasto por desempleo por provincia. 
+#Dataset de gasto en prestaciones por desempleo 
 
 str(gasto_desempleo)
 
-#Tranformamos la variable del código mes en un formato compatible para ser 
-#reconocido como una fecha.
-
+#Transformamos la variable del código mes en un formato compatible para ser reconocido como una fecha.
 gasto_desempleo$Código.mes <- as.factor(gasto_desempleo$Código.mes)
 str(gasto_desempleo$Código.mes)
 
@@ -272,8 +293,7 @@ str(gasto_desempleo$Código.mes)
 gasto_desempleo$Código.mes <- as.factor(gasto_desempleo$Código.mes)
 str(gasto_desempleo$Código.mes)
 
-#Transformamos el resto de variables que nos interesan 
-
+#Transformamos algunas de las variables que RStudio ha interpretado de tipo "character", pero son de tipo "numeric"
 gasto_desempleo$Gasto.Prestación.Contributiva <-
   as.numeric(gasto_desempleo$Gasto.Prestación.Contributiva)
 str(gasto_desempleo$Gasto.Prestación.Contributiva)
@@ -295,35 +315,34 @@ gasto_desempleo$Gasto.Subsidio.Eventuales.Agrarios <-
 str(gasto_desempleo$Gasto.Subsidio.Eventuales.Agrarios)
 ```
 
-#### Resumen del dataset
+####<span style="color:purple"> Resumen del dataset </span>
 
 Una vez que tenemos las variables en un formato adecuado para su análisis, 
-realizamos un resumen de cada una de las variables en ambos datasets. 
+realizamos un resumen de las varaibles que nos interesan en ambos datasets. 
 
 ```{r resumen de las variables que presenta el dataset, warning = FALSE}
-#Resumen de varaibles del dataset de número de demandantes de empleo 
-summary (Datos_desempleo)
+#Resumen de variables del dataset de número de demandantes de empleo 
+knitr::kable(summary (Datos_desempleo[,c(-2,-3,-4,-7)]))
 
-#Resumen de las varaibles del dataset de gasto en prestaciones por desempleo. 
-summary (gasto_desempleo)
+#Resumen de las variables del dataset de gasto en prestaciones por desempleo.
+knitr::kable(summary (gasto_desempleo[,c(-2,-3,-4,-7)]))
+
 ```
 
-#### Detección y tratamiento de datos perdidos (NAs)
+####<span style="color:purple"> Detección y tratamiento de datos perdido </span>
 
 También debemos analizar si el dataset presenta datos perdidos (NAs). 
 
-```{r detección de NAs, warning = FALSE}
-#Esta función nos indica si existe algún NA en el dataset, TRUE nos indica que existe alguno, mientras que False nos indica que no ha encontrado ningún valor perdido entre los datos. 
+La función que aplicaremos posteriormente nos muestra un resultado booleano (TRUE o FALSE). Si resultado es "TRUE", nos indica que existen NAs dentro del dataset, pero no nos indica cuantos, ni su posición. Si el resultado es "FALSE", el dataset no presenta valores perdidos. 
 
-#Análisis de datos perdidos en el dataset de número de demandantes de empleo 
+```{r detección de NAs, warning = FALSE}
+#Dataset de demandantes de empleo
 any(is.na(Datos_desempleo))
 
-#Análisis de datos perdidos en el dataset de gasto por desempleo
-
+#Dataset de gasto en prestaciones por desempleo
 any(is.na(gasto_desempleo))
 
-#Eliminamos las filas que presenten NAs en el dataset de gasto por desempleo. 
-
+#En este caso el resultado es "TRUE" por tanto procedemos a eliminamos las filas que presenten NAs en el dataset de gasto en prestaciones por desempleo, ya que no tenemos opción de detectar el por qué de esos datos perdidos. 
 gasto_desempleo <- na.omit(gasto_desempleo)
 
 any(is.na(gasto_desempleo))
@@ -331,17 +350,15 @@ summary(gasto_desempleo)
 ```
 
 
-#### Creación de nuevo dataset
+####<span style="color:purple"> Creación de un nuevo dataset </span> 
 
-Una vez que tenemos los dataset limpios, en este caso, para agilizar las visualizaciones,
-en el caso de el datasets de demandantes de empleo, le dividiremos en dos datasets, uno que presente los datos de todos los municipios a lo largo de los años (el dataset de datos_desempleo) y otro en cual agruparemos los datos de desempleo en función de las provincias. 
-El dataset de gasto de prestaciones por desempleo, como ya lo tenemos seleccionado por provincias, lo dejaremos tál y como está. 
+Una vez que tenemos los dataset limpios, para agilizar las visualizaciones,
+el conjunto de datos de los demandantes de empleo, le dividiremos en dos datasets, uno que presente los datos de todos los municipios a lo largo de los años (dataset de datos_desempleo) y otro en cual agruparemos los datos de desempleo en función de las provincias. 
+El dataset de gasto de prestaciones por desempleo, como ya lo tenemos seleccionado por provincias, lo dejaremos como está. 
 
 ```{r creación de nuevo dataset, warning = FALSE}
 
-#Realizamos un group by, agruparemos las variables numericas que nos interesen 
-#en función de las varibles categóricas.  
-
+#Realizamos un group by, agruparemos las variables numericas que nos interesen, en función de varias variables categóricas
 desempleados_provincia <- Datos_desempleo %>% 
   group_by(Código.mes, Comunidad.Autónoma, Provincia) %>%
   summarise(total.Dtes.Empleo = (sum(total.Dtes.Empleo)), 
@@ -352,16 +369,12 @@ desempleados_provincia <- Datos_desempleo %>%
             Dtes.Empleo.mujer.edad.25..45 = (sum(Dtes.Empleo.mujer.edad.25..45)),
             Dtes.Empleo.mujer.edad...45 = (sum(Dtes.Empleo.mujer.edad...45)))
 
-head(desempleados_provincia)
+knitr::kable(head(desempleados_provincia))
 ```
 
-#### Guardar el dataset 
+####<span style="color:purple"> Guardar los datasets </span> 
 
-Una vez que tengamos los datasets que necesitamos para los análisis y las visualizaciones,
-los guardaremos en la carpeta que nosotros decidamos para poder usarlo en otros 
-programas u otros análisis posteriores. Lo guardaremos en formato csv UTF8, para 
-que los símbolos sean reconocidos de manera correcta por otros programas. 
-
+Una vez que tenemos los datasets con las variables que necesitamos para los análisis y las visualizaciones, los guardaremos en la carpeta que nosotros decidamos para poder usarlo en otras herramientas o para realizar análisis posteriores. Lo guardaremos en formato csv UTF8 (Formato de Transformación Unicode) para que los caracteres sean identificados de manera correcta por cualquier herramienta.  
 
 ```{r guardar el nuevo dataset, warning = FALSE}
 #Dataset de demandantes de empleo por provincia desde 2006 hasta 2020. 
@@ -370,26 +383,27 @@ write.csv(desempleados_provincia,
           file="Desempleados_provincia_UTF8.csv",
           fileEncoding= "UTF-8")
 
-#Dataset de gasto por desempleo por provincia desde 2010 hasta 2020.
+#Dataset de gasto en prestaciones por  desempleo por provincia desde 2010 hasta 2020.
 
 write.csv(gasto_desempleo, file="Gasto_desempleo_UTF8.csv", fileEncoding= "UTF-8")
 ```
 
-## <span style="color:purple"> Comparativa entre gasto por desempleo y el número de desempleados por provincia </span>
+### <span style="color:purple"> Comparativa entre gasto en prestaciones por desempleo y el número de desempleados por provincia </span>
 
-Para poder realizar una comparativa entre el número de demandantes de empleo y el gasto que se invierte en cada uno de ellos en función de la provincia, realizaremos un join de ambos datasets. Realizamos un inner join, con las variables "Código.mes", "Provincia" y "Comunidad.Autónoma", ya que están presente en ambos datasets. 
+Para poder realizar una comparativa entre el número de demandantes de empleo y el gasto que se invierte en cada uno de ellos en función de la provincia, realizaremos un merge de ambos datasets.Las variables de unión serán "Código.mes", "Provincia" y "Comunidad.Autónoma", que están presente en ambos datasets. 
 
-```{r unión de las bases de datos, warning = FALSE}
-head(desempleados_provincia)
-head(gasto_desempleo)
+```{r unión de los datasets, warning = FALSE}
+knitr::kable(head(desempleados_provincia))
+knitr::kable(head(gasto_desempleo))
 gasto_por_desempleado <- merge(x = desempleados_provincia, y = gasto_desempleo , 
                                by = c("Código.mes", "Provincia", 
                                       "Comunidad.Autónoma"))
 
-head(gasto_por_desempleado)
+knitr::kable(head(gasto_por_desempleado))
 str(gasto_por_desempleado)
 ```
-Transformamos dos de las variables, "Provincia" y "Comunidad.Autónoma"
+
+Las variables de "Provincia" y Comunidad.Autónoma" son de tipo "character", pero nos interesa transformarlas en factores, de tal manera que podamos agrupar el dataset en función de esos factores.
 
 ```{r transformación de dos varibles, warning = FALSE}
 gasto_por_desempleado$Provincia <- as.factor(gasto_por_desempleado$Provincia)
@@ -399,9 +413,11 @@ gasto_por_desempleado$Comunidad.Autónoma <- as.factor(gasto_por_desempleado$Com
 str(gasto_por_desempleado$Comunidad.Autónoma)
 ```
 
-### Coeficientes de correlación
+#### Coeficientes de correlación
 
-Calculamos el coeficient de correlación de Pearson entre las variables regresoras.  
+Queremos realizar una compartiva entre dos variables numéricas, el número de demandantes de empleo ("total.Dtes.Empleo") y el gasto total en prestaciones por desempleo ("Gasto.Total.Prestacion"), para saber si existe una relación entre ambas. 
+
+Calculamos el [coeficiente de correlación de Pearson](https://es.wikipedia.org/wiki/Coeficiente_de_correlaci%C3%B3n_de_Pearson) entre las variables regresoras.  
 
 ```{r Correlación de Pearson, warning = FALSE}
 cor (gasto_por_desempleado$total.Dtes.Empleo, 
@@ -410,52 +426,43 @@ cor (gasto_por_desempleado$total.Dtes.Empleo,
 plot(gasto_por_desempleado [,c(15,4)], xlab = "Gasto por desempleo", 
      ylab = "Demandantes de empleo", main = "Matriz de dispersión")
 ```
- En este caso vemos que existe una alta correlación entre ambas varaibles. 
+Analizando el resultado, podemos determinar que existe una alta correlación entre ambas variables
  
-### Ajustar el modelo de regresión 
+#### Realización del modelo
+
+Estamos trabajando con dos variables continuas, el número de demandantes de empleo ("total.Dtes.Empleo") y el gasto total en prestaciones por desempleo ("Gasto.Total.Prestacion"). 
+
+Antes de realizar el modelo, debemos determinar si la variable respues ("Gasto.Total.Prestacion"), sigue una distribución normal. Si no es así debemos determinar que distribución sigue para aplicarla al modelo. 
+
+Realizamos el [test Shapiro-Wilk](https://es.wikipedia.org/wiki/Test_de_Shapiro%E2%80%93Wilk) de normalidad. Si la distribución es normal, el p-valor debe ser mayor que el nivel de alfa (alfa = 0,05). 
 
 ```{r modelo, warning = FALSE}
+install.packages("dlookr")
+library(dlookr)
 
-modelo <- glm (Gasto.Total.Prestación ~ total.Dtes.Empleo, 
-               data= gasto_por_desempleado)
+normality(gasto_por_desempleado, "Gasto.Total.Prestación")
+plot_normality(gasto_por_desempleado, "Gasto.Total.Prestación")
+```
 
-summary(modelo)
+Como hemos visto tanto en el test de Shapiro-Wilk, como en el histograma, los datos no siguen una distribución normal, siguen una [distribución Gamma](https://es.wikipedia.org/wiki/Distribuci%C3%B3n_gamma). 
+
+Una vez que hemos detectado que tipo de distribución que sigue la variable respuesta, procedemos a realizar el modelo. En este caso es un [Modelo Lineal Generalizado (GLM)](https://es.wikipedia.org/wiki/Modelo_lineal_generalizado).
+
+```{r modelo, warning = FALSE}
+modelo_gamma <- glm((Gasto.Total.Prestación ~ total.Dtes.Empleo), 
+              family = Gamma(link="identity"),
+              data= gasto_por_desempleado)
+
 ```
  
-El modelo con una unica predictora es capaz de explicar el 94.83 % de la variabilidad observada en el gasto de desempleo.El p-value del modelo es significativo (2.2e-10). 
+Una vez que hemos realizado el modelo exploremos los resultados 
 
-Los siguientes comandos representan la nube de puntos y añadiremos la representación gráfica de la recta de mínimos cuadrados. 
-
-```{r plot del modelo, warning = FALSE}
-
-plot((gasto_por_desempleado$total.Dtes.Empleo),
-     (gasto_por_desempleado$Gasto.Total.Prestación),
-     xlab = "Gasto por desempleo", 
-     ylab = "Demandantes de empleo") + 
-  abline(modelo, col ="red")
+```{r modelo resultados, warning = FALSE}
+summary(modelo_gamma)
+print(modelo_gamma)
+anova(modelo_gamma)
 ```
 
-Una vez que hemos realizado el modelo debemos realizar una validacion del mismo.
-Si la relación entre la variable respuesta y la predictora es lineal, los residuos
-deben distribuirse de manera aleatorio en torno a 0. 
-
-```{r disgnostico del modelo, warning = FALSE}
-
-plot_residuos <- ggplot(data = gasto_por_desempleado, 
-                        aes (Gasto.Total.Prestación, modelo$residuals))+
-  geom_point() + 
-  geom_smooth(method = "gam", formula = y ~ s(x, bs = "cs"), color = "red") + 
-  geom_hline(yintercept = 0) + 
-  theme_bw()
-
-plot_residuos
-
-residuos <- rstandard(modelo)
-valores.ajustados <- fitted(modelo)
-plot(valores.ajustados, residuos)
-qqnorm(residuos)
-qqline(residuos)
-```
 
 ## <span style="color:purple"> Creación de nuevas variables </span> 
 
