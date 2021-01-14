@@ -480,3 +480,124 @@ write.csv(gasto_por_desempleado,
           file="gasto_por_desempleado_UTF8.csv",
           fileEncoding= "UTF-8")
 ```
+
+
+## <span style="color:purple"> Visualización con Elastic </span>
+
+Para poder realizar la visualización con el software de Elastic, debemos instalar de manera gratuita, [Elasticsearch](https://www.elastic.co/es/elasticsearch/) y [Kibana](https://www.elastic.co/es/kibana). 
+
+Una vez que tenemos descargados ambos ficheros, debemos descomprimirles. Una vez hecho esto, abrimos Elasticsearch desde el Símbolo del Sistema (cmd). Con el comando "cd" nos colocamos en la carpeta "bin" del fichero de Elasticsearch.
+
+<center>![](C:\Users\esansegu\Proyecto_GitHub\Visualizacion_brecha_genero\Imagenes_Elastic\cmd_elastic.PNG)</center>
+
+
+Dentro de la carpeta "bin", tenemos un ejecutable (elasticsearch) que debemos arrancar.
+
+<center>![](C:\Users\esansegu\Proyecto_GitHub\Visualizacion_brecha_genero\Imagenes_Elastic\cmd_elastic_lanzar .PNG)</center>
+
+Posteriormente desde el navegador de preferencia, accedemos al puerto donde está la escucha de Elasticsearch (en este caso 127.0.0.1:9200).
+
+<center>![](C:\Users\esansegu\Proyecto_GitHub\Visualizacion_brecha_genero\Imagenes_Elastic\Union_puerto_elasticsearch.PNG)</center> 
+
+Una vez que hemos arrancado Elasticsearch, debemos arrancar Kibana, siguiendo el mismo proceso. Abrimos un nuevo Símbolo del Sistema (sin cerrar el anterior) y nos colocamos en la carpeta "bin" del fichero de Kibana. Dentro de esa carpeta arrancamos el ejecutable (Kibana).
+
+<center>![](C:\Users\esansegu\Proyecto_GitHub\Visualizacion_brecha_genero\Imagenes_Elastic\cmd_kibana.PNG)</center> 
+
+Este ejecutable viene ya configurado para conectarse al Elasticsearch en local host. Esto nos arranca un servidor web, únicamente debemos acceder al puerto en el cual está escuchando a través de nuestro navegador (en este caso http://localhost:5601).
+
+<center>![](C:\Users\esansegu\Proyecto_GitHub\Visualizacion_brecha_genero\Imagenes_Elastic\Union_puerto_kibana.PNG)</center>
+
+### <span style="color:purple"> Carga de datos </span>
+
+Una vez que estamos dentro de la aplicación de la aplicación de Elastic, procedemos a cargar los conjuntos de datos necesarios (dataset de demandantes de empleo desde 2006 hasta 2020 por provincia, dataset de gasto por demandante de empleo por provincia y el dataset de contratos generados desde 2006 hasta 2020 por provincia) en elasticsearch. Los conjuntos de datos pueden ser importados en formato.csv, pero Elasticsearch se encargará de transformar esos datos a un formato .json.  
+
+<center>![](C:\Users\esansegu\Proyecto_GitHub\Visualizacion_brecha_genero\Imagenes_Elastic\carga de datos .PNG)</center>
+
+Una vez que hemos cargado los datos, podemos visualizar tanto las variables y cada uno de los datos que presenta el conjunto de datos. 
+
+<center>![](C:\Users\esansegu\Proyecto_GitHub\Visualizacion_brecha_genero\Imagenes_Elastic\union_vairiables_datos.PNG)</center>
+
+
+### <span style="color:purple"> Generar las visualizaciónes </span>
+
+Para generar una visualización, seleccionamos "crear visualización". Elegimos el tipo que queremos y nos llevará a la página de creación. En nuestro caso hemos utilizado los siguientes tipos de gráficas: 
+* Line 
+* Pie Chart
+* Vertical Bar
+* Date Table
+* Control 
+* TSVB (Markdown)
+
+En cada una de estas visualizaciones, simplemente debemos indicar uno de los índices creados a partir de los datasets integrados en Elasticsearch. 
+
+#### <span style="color:purple"> Gráfico Line </span>
+
+* Index: dtes_empleo_2006_2020
+* Eje y: Seleccionamos 7 variables: 
+    * Número total de desempleados
+    * Número de desempleados hombres menores de 25 años 
+    * Número de desempleados hombres entre 25 y 45 años 
+    * Número de desempleados hombres mayores de 45 años 
+    * Número de desempleados mujeres menores de 25 años 
+    * Número de desempleados mujeres entre 25 y 45 años 
+    * Número de desempleados mujeres mayores de 45 años 
+* Eje X: Variable "Código_mes", que representa el tiempo desde 2006 hasta 2020 por meses 
+
+#### <span style="color:purple"> Gráfico Pie Chart  </span>
+
+En este caso tenemos 2 gráficos de sectores, que apuntan a índices y variables diferentes. 
+
+* Demandantes de empleo desde 2006 hasta 2020 por Comunidad Autónoma y Provincia.
+    * Index: dtes_empleo_2006_2020
+    * Metric: total de demandantes de empleo 
+    * Bucket: Dividiremos el gráfico en dos secciones, Comunidad Autónoma y Provincia. 
+
+
+* Contratos nuevos desde 2006 hasta 2020 por Comunidad Autónoma y Provincia. 
+    * Index: Contratos_2006_2020
+    * Metric: Número total de contratos 
+    * Bucket: Dividiremos el gráfico en dos secciones, Comunidad Autónoma y Provincia. 
+
+#### <span style="color:purple"> Gráfico Vertical Bar </span>
+
+Al igual que el gráfico anterior, tenemos tres gráficos de este tipo. 
+
+* Demandantes de empleo desde 2006 hasta 2020 por Comunidad Autónoma y Provincia. 
+    * Index: dtes_empleo_2006_2020
+    * Eje y: Seleccionamos seis variables: 
+        * Número de desempleados hombres menores de 25 años 
+        * Número de desempleados hombres entre 25 y 45 años 
+        * Número de desempleados hombres mayores de 45 años 
+        * Número de desempleados mujeres menores de 25 años 
+        * Número de desempleados mujeres entre 25 y 45 años 
+        * Número de desempleados mujeres mayores de 45 años 
+    * Buckets: Dividiremos el gráfico en Provincias. 
+
+* Contratos nuevos indefinidos desde 2006 hasta 2020 por Comunidad Autónoma y Provincia. 
+    * Index: Contratos_2006_2020
+    * Eje Y: Seleccionamos dos variables 
+        * Número de contratos indefinidos realizados a hombres
+        * Número de contratos indefinidos realizados a mujeres
+    * Bucket: Dividiremos el gráfico en Provincias.
+
+* Contratos nuevos temporales desde 2006 hasta 2020 por Comunidad Autónoma y Provincia. 
+    * Index: Contratos_2006_2020
+    * Eje Y: Seleccionamos dos variables 
+        * Número de contratos temporales realizados a hombres
+        * Número de contratos temporales realizados a mujeres
+    * Bucket: Dividiremos el gráfico en Provincias.
+
+#### <span style="color:purple"> Gráfico Data Table </span>
+
+* Index: Gasto_por_desempleado
+* Metric: Media del gasto por prestaciones por cada demandante de empleo 
+* Bucket: Dividiremos la tabla en dos secciones, Comunidad Autónoma y Provincia.
+
+#### <span style="color:purple"> Controls </span>
+
+Para poder interactuar con los gráficos, al igual que pinchando sobre ellos, creamos unos controles, para poder seleccionar la/s Comunidad/es Autónoma/s o la/s Provincia/s que nos interesen. 
+
+
+### <span style="color:purple"> Generar el Dashboard </span>
+
+Seleccionamos "Create dashboard" para generar un cuadro, en el cual con la añuda de la pestaña "Add" vamos añadiendo todas las visualizaciones que hemos creado, ordenándolas como prefiramos. 
