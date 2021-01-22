@@ -10,7 +10,9 @@ output:
 ---
 
 ## <span style="color:purple"> Introducción </span>
-En este nuevo post vamos a centrarnos en la creación de una visualización a partir de datos abiertos. Las visualizaciones de datos ofrecen una manera accesible para detectar tendencias y patrones de los datos. Son esenciales para analizar los conjuntos de datos y tomar decisiones basadas en ellos.
+En este nuevo post nos centraremos en aprender a realizar una visualización a partir de datos abiertos. Aprenderemos a cargar datasets en un un entorno de desarrollo, realizaremos un tratamiento de esos datos y finalmente aprenderemos a construir graficos en una herramienta de visualizaciones. 
+
+Las visualizaciones de datos ofrecen una manera accesible de detectar tendencias y patrones de datos. Son esenciales para analizar conjuntos de datos y tomar desisiones basadas en ellos.   
 
 Para realizar esta visualización seleccionamos unos datos publicados por el SEPE. Estos conjuntos de datos son series temporales con diferentes desagregaciones. En estos datos podremos observar la evolución de la demanda de empleo en España y como se ve afectada por la brecha de género que puede verse influenciada por diferentes variables. 
 
@@ -21,59 +23,66 @@ El objetivo principal de este estudio es el aprendizaje de diferentes herramient
 
 ## <span style="color:purple"> Recursos </span>
 
-### <span style = "color:purple"> Datos abiertos </span>
+### <span style = "color:purple"> Conjuntos de datos </span>
 
-Para este análisis se han utilizado diferentes conjuntos de datos: 
+En esta ocasión hemos escogido unos conjuntos de datos relacionados con el desempleo en España. Estos datasets se encuentran disponibles en [datos.gob.es](https://datos.gob.es/) y han sido publicados por el Servicio Público de Empleo Estatal (Ministerio de Trabajo y Economía Social). 
+
+ > [Servicio Público de Empleo Estatal (SEPE)](https://www.sepe.es): organismo que coordina los medios y acciones tanto estatales como autonómicos con el objetivo de promover, diseñar y desarrollar medidas y acciones para el empleo. 
 
 * [Datasets de los demandantes de empleo por municipio](https://datos.gob.es/es/catalogo/ea0021425-demandantes-de-empleo-por-municipios). 
 * [Datasets del gasto de prestaciones por desempleo por provincia](https://datos.gob.es/es/catalogo/ea0021425-gasto-en-prestaciones). 
 * [Datasets de contratos registrados por municipios](https://datos.gob.es/es/catalogo/ea0021425-contratos-por-municipios).
   
-Todos estos conjuntos de datos se encuentran disponibles en [datos.gob.es](https://datos.gob.es/). Se tratan de conjuntos de datos que recogen series temporales mensuales por Provincias o Municipios. Estos datos han sido publicados por el Servicio Público de Empleo Estatal (Ministerio de Trabajo y Economía Social).   
+Todos estos conjuntos de datos recogen una serie temporal mensual y se encuentran desagregados por Provincia o Municipio.   
 
 ### <span style = "color:purple"> Herramientas </span>      
 
-Para la realización de este documento (entorno de trabajo, programación y redacción del mismo) se ha utilizado [RStudio](https://rstudio.com/) con el complemento de [Markdown](https://daringfireball.net/projects/markdown/).
+Para la realización de este documento (entorno de trabajo, programación y redacción del mismo) se ha utilizado [R (versión 4.0.3)](https://www.r-project.org/about.html) y [RStudio](https://rstudio.com/) con el complemento de [RMarkdown](https://rmarkdown.rstudio.com/).
  
-> RStudio es un entorno de desarrollo integrado para el lenguaje de programación R, dedicado al análisis estadístico y la creación de gráficos. 
+> RStudio es un entorno de desarrollo open source integrado para el lenguaje de programación R, dedicado al análisis estadístico y la creación de gráficos. 
 
-Para la creación de los gráficos interactivos se han usado la herramienta de [Elastic Stack](https://www.elastic.co/es/elastic-stack?ultron=B-Stack-Trials-EMEA-S-Exact&gambit=Elasticsearch-ELK&blade=adwords-s&hulk=cpc&Device=c&thor=elastic%20stack&gclid=Cj0KCQiA0fr_BRDaARIsAABw4Evg_ld47Q6u6eE89zQ3Jl1TPZqX1UG9xebZfyUBpo6Z7QX_fO4txgMaAuuAEALw_wcB). 
+Para la creación de los gráficos interactivos se han usado la herramienta de [Elastic Stack (versión 7.10)](https://www.elastic.co/es/elastic-stack?ultron=B-Stack-Trials-EMEA-S-Exact&gambit=Elasticsearch-ELK&blade=adwords-s&hulk=cpc&Device=c&thor=elastic%20stack&gclid=Cj0KCQiA0fr_BRDaARIsAABw4Evg_ld47Q6u6eE89zQ3Jl1TPZqX1UG9xebZfyUBpo6Z7QX_fO4txgMaAuuAEALw_wcB). 
 
 > Elastic Stack (Elasticsearch, Logstasg y Kibana) es un conjunto de herramientas open source desarrolladas por Elastic que permite recoger datos de cualquier formato para realizar análisis y visualizaciones.  
 
 ## <span style="color:purple"> Tratamiento de datos </span>
 
+Para esta visualización vamos a mostrar las diferentes etapas del proceso de limpieza y análisis de los datos, desde la carga de los datos hasta el análisis preliminar de los mismos.  
+
+Para favorecer el entendimiento de los lectores no especialistas, el código no está diseñado para su eficiencia, sino para su fácil comprensión. Además el lector podrá reproducir este análisis si lo desea, ya que el código fuente será suministrado en nuestra cuenta de [Github](enlace). La forma de proporcionar el código es a través de un documento de RMarkdown, una vez cargado en el entorno de desarrollo podrá ejecutarse o modificarse de manera sencilla si se desea. 
+
+
 ### <span style="color:purple"> Instalación y carga de librerías </span>
 
-Instalamos y cargamos las librerías necesarias para el tratamiento y análisis de estos datos. 
+Para el desarrollo de esta visualización necesitamos instalar una serie de paquetes adicionales de R. 
 ```{r carga de librerías, warning = FALSE, message = FALSE}
-#Paquete para importar archivos de excel
+
+#Instalación de paquetes 
 if (!requireNamespace("readxl", quietly = TRUE)) {install.packages("readxl")}
-library(readxl)
 
-#Paquete para facilitar la manipulación y operaciones con data frames
-if (!requireNamespace("dplyr", quietly = TRUE)) {install.packages("dplyr")}
-library(dplyr)
+if (!requireNamespace("dplyr", quietly = TRUE))
+ {install.packages("dplyr")}
 
-#Paquete que facilita el trabajo con variables de tipo fecha
 if (!requireNamespace("lubridate", quietly = TRUE)) {install.packages("lubridate")}
-library(lubridate)
 
-#Paquete que implementa la representación gráfica de los datos 
 if (!requireNamespace("ggplot2", quietly = TRUE)) {install.packages("ggplot2")}
-library(ggplot2)
 
-#Paquete que ayuda al diagnóstico, exploración y transformación de los datos
 if (!requireNamespace("dlookr", quietly = TRUE)) {install.packages("dlookr")}
+
+#Carga de paquetes en el entorno de desarrollo 
+
+library(readxl)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
 library(dlookr)
 ```
 
 ### <span style="color:purple"> Carga y limpieza de datos </span>
   
-  
 #### <span style="color:purple"> Carga de datasets </span>
 
-Cargamos los conjuntos de datos en RStudio desde su ubicación en la página web para poder trabajar con ellos.      
+Los conjuntos de datos para nuestra visualización se encuentran divididos anualmente en ficheros .csv y .xls. Para realizar una serie temporal anual debemos cargar en nuestro entorno de desarrollo todos los ficheros que nos interesan.     
 ```{r carga de datos, warning = FALSE}
 #Carga de datasets de demandantes de empleo por municipio desde 2006 hasta 2020.
 Demandantes_empleo_2006 <-
@@ -261,8 +270,9 @@ Contratos_2013_2s<- read_excel("Contratos_por_municipios_segundo_semestre_2013_x
 Contratos_2013 <- rbind(Contratos_2013_1S, Contratos_2013_2S)
 ```
 
-Cuando cargamos los datos en formato xls, se cargan en tipo "tibble". Para poder trabajar con ellos al igual que con las otros datasets (que se cargan en tipo "data.frame"), los transformamos a "data.frame". 
 ``` {r class 1 , warning = FALSE, echo = FALSE, results='hide'}
+#Cuando cargamos los datos en formato xls, se cargan en tipo "tibble". Para poder trabajar con ellos al igual que con las otros datasets (que se cargan en tipo "data.frame"), los transformamos a "data.frame". 
+
 #Dataset de demandantes de empleo en 2013
 class(Demandantes_empleo_2013_1s)
 class(Demandantes_empleo_2013_2s)
@@ -275,7 +285,7 @@ class (Contratos_2013_1s)
 class (Contratos_2013_2s)
 ```
 
-``` {r data frame , warning = FALSE}
+``` {r data frame , warning = FALSE, echo = FALSE, results='hide'}
 #Dataset de demandantes de empleo en 2013
 Demandantes_empleo_2013_1S <- as.data.frame(Demandantes_empleo_2013_1s)
 Demandantes_empleo_2013_2S <- as.data.frame(Demandantes_empleo_2013_2s)
@@ -300,22 +310,21 @@ class(gasto_2013)
 class(Contratos_2013_1s)
 class(Contratos_2013_2s)
 ```
-Una vez que tenemos todos los datasets que nos interesan los unimos en un único conjunto de datos. 
 
-Al cargar los datos en dos formatos diferentes (csv y xls), aunque las variables sean las mismas, RStudio interpreta los nombres de estas de manera diferente. Para unir todos los conjuntos de datos, sus variables deben presentar el mismo nombre. 
+Una vez que tenemos todos los conjuntos de datos cargados en el entorno de desarrollo, debemos unificarlos para así tener un dataset por cada una de las características relacionadas con los demandantes de empleo que queramos analizar.  
 
-Como sabemos que los datasets presentan las mismas variables, haremos coincidir los nombres de estas en todos los datasets. 
+Al cargar los datos en dos formatos diferentes (.csv y .xls), aunque las variables sean las mismas, RStudio interpreta los nombres de manera diferente. Para unir todos los conjuntos de datos, sus variables deben presentar el mismo nombre. Como sabemos que los datasets presentan las mismas variables, haremos coincidir los nombres de estas en todos los datasets. 
 
 ```{r Unir datasets, warning = FALSE, results='hide'}
 #Dataset de demandantes de empleo en 2013
-#Cambio de nombre a las variables del dataset de demandantes de empleo de 2013
+  #Cambio de nombre a las variables del dataset de demandantes de empleo de 2013
 identical(names(Demandantes_empleo_2006), names(Demandantes_empleo_2013_1s))
 names(Demandantes_empleo_2013_1s) <- names(Demandantes_empleo_2006)
 
 identical(names(Demandantes_empleo_2006), names(Demandantes_empleo_2013_2s))
 names(Demandantes_empleo_2013_2s) <- names(Demandantes_empleo_2006)
 
-#Unión de los datasets de demandantes de empleo
+  #Unión de los datasets
 Datos_desempleo <- rbind(Demandantes_empleo_2006, Demandantes_empleo_2007,
                          Demandantes_empleo_2008, Demandantes_empleo_2009,
                          Demandantes_empleo_2010, Demandantes_empleo_2011,
@@ -326,28 +335,28 @@ Datos_desempleo <- rbind(Demandantes_empleo_2006, Demandantes_empleo_2007,
                          Demandantes_empleo_2019, Demandantes_empleo_2020) 
 ```
 
-```{r Unir datasets 2, warning = FALSE}
+```{r Unir datasets 2, warning = FALSE, results='hide'}
 #Dataset de gasto en prestaciones por desempleo en 2013
-#Cambio de nombre a las variables del dataset de gasto en prestaciones por desempleo de 2013
+  #Cambio de nombre a las variables del dataset de gasto en prestaciones por desempleo de 2013
 identical(names(gasto_2010), names(gasto_2013))
 names(gasto_2013) <- names(gasto_2010)
 
-#Unión de los datasets de gasto en prestaciones por desempleo
+  #Unión de los datasets de gasto en prestaciones por desempleo
 gasto_desempleo <- rbind(gasto_2010, gasto_2011, gasto_2012, gasto_2014, 
                          gasto_2013, gasto_2015,gasto_2016, gasto_2017, 
                          gasto_2018,gasto_2019, gasto_2020)
 ```
 
-```{r Unir datasets 3, warning = FALSE}
+```{r Unir datasets 3, warning = FALSE, results='hide'}
 #Dataset de nuevos contratos a demandates de empleo en 2013
-#Cambio de nombre a las variables del dataset de contratos nuevos a demandantes de empleo en 2013
+  #Cambio de nombre a las variables del dataset de contratos nuevos a demandantes de empleo en 2013
 identical(names(Contratos_2006), names(Contratos_2013_1s))
 names(Contratos_2013_1s) <- names (Contratos_2006)
 
 identical(names(Contratos_2006), names(Contratos_2013_2s))
 names(Contratos_2013_2s) <- names (Contratos_2006)
 
-#Unión de los datasets de contratos nuevos a demandantes de empleo 
+  #Unión de los datasets de  contratos nuevos a demandantes de empleo 
 Contratos <- rbind(Contratos_2006, Contratos_2007, Contratos_2008,
                    Contratos_2009,Contratos_2010, Contratos_2011, 
                    Contratos_2012, Contratos_2013_1s, Contratos_2013_2s, 
@@ -368,13 +377,23 @@ knitr::kable(head(Contratos [, c(-2,-3,-5, -7)]))
 ```
 #### <span style="color:purple"> Transformación de variables </span>
 
-Cuando tenemos el dataset que nos interesa, debemos evaluar el tipo de variables que presenta y si fuera necesario transformarlas, ya que en algunas ocasiones RStudio no interpreta el "tipo" de manera correcta. Por ejemplo, en estos tres dataset tenemos una variable que hace referencia a la fecha, RStudio la interpreta como "numeric", por tanto debemos transformarla para que esa variable sea tomada como una fecha.   
+Una vez cargado el dataset, debemos transformar las varaibles a otros formatos más adecuados para futuras agregaciones o análisis. 
 
-```{r Transformar variables, warning = FALSE}
+```{r Tipos de variables, warning = FALSE, echo=FALSE, results='hide'}
 #Dataset de demandantes de empleo
 str(Datos_desempleo [,c(-2,-3,-5,-7)])
 
-#Transformamos la variable de "código. mes" en un formato compatible para ser reconocido como fecha.
+#Dataset de gasto en prestaciones por desempleo 
+str(gasto_desempleo [, c(-2,-3,-5)])
+
+#Dataset de Contratos nuevos a demandantes de empleo 
+str(Contratos [,c(-2,-3,-5,-7)])
+
+```
+
+```{r Transformar variables, warning = FALSE}
+#Dataset de demandantes de empleo
+  #Transformación de una variable fecha
 Datos_desempleo$Código.mes <- as.factor(Datos_desempleo$Código.mes)
 
 Datos_desempleo$Código.mes <- parse_date_time(Datos_desempleo$Código.mes,
@@ -386,9 +405,7 @@ Datos_desempleo$Código.mes <- as.factor(Datos_desempleo$Código.mes)
 
 ```{r Transformar variables 2, warning = FALSE}
 #Dataset de gasto en prestaciones por desempleo 
-str(gasto_desempleo [, c(-2,-3,-5)])
-
-#Transformamos la variable del código mes en un formato compatible para ser reconocido como una fecha.
+  #Transformación de una variable fecha.
 gasto_desempleo$Código.mes <- as.factor(gasto_desempleo$Código.mes)
 
 gasto_desempleo$Código.mes <- parse_date_time(gasto_desempleo$Código.mes, 
@@ -397,16 +414,14 @@ gasto_desempleo$Código.mes <- parse_date_time(gasto_desempleo$Código.mes,
 
 gasto_desempleo$Código.mes <- as.factor(gasto_desempleo$Código.mes)
 
-#Transformamos una variable que RStudio ha interpretado de tipo "character", pero es de tipo "numeric"
+  #Transformamos de otros tipos de datos
 gasto_desempleo$Gasto.Total.Prestación <- 
   as.numeric(gasto_desempleo$Gasto.Total.Prestación)
 ```
 
 ```{r Transformar variables 3, warning = FALSE}
 #Dataset de Contratos
-str(Contratos [,c(-2,-3,-5,-7)])
-
-#Tranformamos la variable del código mes en un formato compatible para ser reconocido como una fecha.
+  #Transformación de una variable fecha.
 Contratos$Código.mes <- as.factor(Contratos$Código.mes)
 
 Contratos$Código.mes <- parse_date_time(Contratos$Código.mes, 
@@ -465,7 +480,7 @@ Seguidamente analizaremos si el dataset presenta valores perdidos (NAs). El trat
 
 La función que aplicaremos posteriormente nos muestra un resultado booleano (TRUE o FALSE). Si resultado es "TRUE", nos indica que existen NAs dentro del dataset, pero no nos indica cuantos, ni su posición. Si el resultado es "FALSE", el dataset no presenta valores perdidos. 
 
-```{r detección de NAs, warning = FALSE}
+```{r detección de NAs, warning = FALSE, results='hide'}
 #Dataset de demandantes de empleo
 any(is.na(Datos_desempleo))
 
@@ -558,13 +573,16 @@ gasto_por_desempleado <- merge(x = Dtes_empleo_provincia, y = gasto_desempleo,
 knitr::kable(head(gasto_por_desempleado[,c(1,2,4)]))
 ```
 
+  
+  
 ```{r unión de los datasets visualizacion, warning = FALSE, echo =FALSE, results='hide'}
 knitr::kable(head(Dtes_empleo_provincia))
 knitr::kable(head(gasto_desempleo[,c(-2,-3,-5)]))
 ```
 
-  
-  
+  <br>
+  <br>  
+
 Las variables de "Provincia" y "Comunidad.Autónoma" son de tipo "character", pero nos interesa transformarlas en factores, de tal manera que podamos agrupar el dataset en función de los niveles que presenten estos factores. 
 
 ```{r transformación de dos varibles, warning = FALSE}
@@ -690,7 +708,10 @@ Seleccionamos "Create dashboard" para generar un cuadro, en el cual con la añud
 
 
 
+---
 
+## <span style="color:purple"> Información adicional </span>
 
-
+1. [Primeros pasos con herramientas de Elastic](https://www.elastic.co/es/videos/)
+2. [Primeros pasos con RStudio](https://rstudio.com/wp-content/uploads/2016/05/base-r.pdf)
 
